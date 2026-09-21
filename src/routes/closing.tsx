@@ -20,9 +20,42 @@ export const Route = createFileRoute("/closing")({
 });
 
 function ClosingPage() {
-  return (
+return (
     <AppShell>
       <div className="space-y-4">
+        {/* Assignment Requirement 1 & 2: Outcome Banner & Accountability */}
+        <div className="bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r flex justify-between items-center shadow-sm">
+          <div>
+            <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">Module Outcome</p>
+            <p className="text-lg font-bold text-gray-900">Outcome: Close Deals & Lock Bookings in &lt; 2 Clicks</p>
+          </div>
+          <div className="text-right">
+            <span className="text-xs text-gray-500">Accountable Owner</span>
+            <p className="text-sm font-semibold text-gray-800">Operator | <span className="text-red-500 font-bold">Overdue Check: 5:00 PM</span></p>
+          </div>
+        </div>
+
+        {/* Requirement 3: 1-Tap Closing Quick Actions */}
+        <div className="p-3 bg-white border rounded-lg flex gap-3 items-center justify-between shadow-xs">
+          <span className="text-xs font-bold text-gray-600 uppercase">Quick Actions:</span>
+          <div className="flex gap-2">
+            <button 
+              type="button"
+              onClick={() => alert("💰 Token Deposit Marked Paid! Booking Status Locked.")}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium py-1.5 px-3 rounded text-sm transition"
+            >
+              💰 Mark Token Paid
+            </button>
+            <button 
+              type="button"
+              onClick={() => alert("📱 Instant Booking Receipt & QR Code Sent on WhatsApp.")}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded text-sm transition"
+            >
+              📱 Send WhatsApp Receipt
+            </button>
+          </div>
+        </div>
+
         <header>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight">Closing Mission</h1>

@@ -1,7 +1,7 @@
 // One screen per customer. Answers the five questions at the top, the journey
 // in the middle, the proof at the bottom.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, ArrowLeft, Clock, ShieldAlert, UserCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Clock, ShieldAlert, UserCheck, MessageSquare, Send, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,22 +36,46 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
 
   const openKey = selected || currentKey || "CAPTURE";
 
+  // Quick WhatsApp Template Action Handler
+  const handleQuickSend = (msgText: string, actionName: string) => {
+    navigator.clipboard.writeText(msgText);
+    toast.success(`Copied "${actionName}" template to clipboard!`);
+    const encoded = encodeURIComponent(msgText);
+    const waPhone = lead.phone ? lead.phone.replace(/[^0-9]/g, "") : "";
+    const targetUrl = waPhone ? `https://wa.me/${waPhone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+    window.open(targetUrl, "_blank");
+  };
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="ghost" onClick={onBack}><ArrowLeft className="mr-1 h-4 w-4" />Back to the board</Button>
-        <Button size="sm" variant="outline" onClick={onNext}>Next customer</Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="ghost" onClick={onBack}><ArrowLeft className="mr-1 h-4 w-4" />Back to the board</Button>
+          <Button size="sm" variant="outline" onClick={onNext}>Next customer →</Button>
+        </div>
+        <Badge variant="secondary" className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200">
+          ⚡ Workspace Mode: Zero-Scroll Active
+        </Badge>
       </div>
 
-      <Card className="p-4">
+      <Card className="p-4 border-l-4 border-l-indigo-600 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">{lead.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">{lead.name}</h2>
+              {lead.owner === me && (
+                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-[10px] font-medium border-emerald-300">
+                  Assigned to You
+                </Badge>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">{lead.phone} · {lead.waAccount}</p>
-            <p className="mt-1 max-w-lg text-xs text-muted-foreground">Last message: “{lead.lastMessage}”</p>
+            <p className="mt-1 max-w-lg text-xs text-muted-foreground bg-slate-50 p-1.5 rounded border border-slate-100 italic">
+              Last message: “{lead.lastMessage}”
+            </p>
           </div>
           {mounted && h && (
-            <div className="grid gap-1 text-xs">
+            <div className="grid gap-1 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 min-w-[220px]">
               <Row label="Where is it" value={h.complete ? "Checked in" : h.step?.title ?? "—"} />
               <Row label="Who owns it" value={lead.owner ?? "NOBODY"} bad={!lead.owner} />
               <Row label="Waiting on" value={h.waitingOn} />
@@ -77,6 +101,39 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
           </div>
         )}
 
+        {/* 🚀 SMART 1-CLICK WHATSAPP QUICK TEMPLATES */}
+        <div className="mt-3 border-t pt-3">
+          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-indigo-950 flex items-center gap-1">
+            <MessageSquare className="h-3.5 w-3.5 text-indigo-600" /> Smart 1-Click WhatsApp Actions
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300 active:scale-95 transition-all cursor-pointer"
+              onClick={() => handleQuickSend(`Hi ${lead.name}! Your PG tour with Gharpayy is scheduled. Looking forward to meeting you! 🏠`, "Schedule Visit")}
+            >
+              <Send className="mr-1 h-3 w-3" /> Schedule Tour Template
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300 active:scale-95 transition-all cursor-pointer"
+              onClick={() => handleQuickSend(`Hi ${lead.name}, here are the property details and location photos for your requested PG stay. 📍`, "Send Location")}
+            >
+              <Send className="mr-1 h-3 w-3" /> Send Property Location
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 active:scale-95 transition-all cursor-pointer"
+              onClick={() => handleQuickSend(`Hi ${lead.name}, please pay the token amount using this secure link to confirm your room booking. 💳`, "Token Payment")}
+            >
+              <Send className="mr-1 h-3 w-3" /> Send Token Link
+            </Button>
+          </div>
+        </div>
+
         <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
           {!lead.owner && (
             <Button size="sm" onClick={() => { claim(lead.id); toast.success(`${lead.name} is yours, ${me}`); }}>
@@ -84,7 +141,7 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
             </Button>
           )}
           <div>
-            <p className="mb-1 text-[10px] uppercase text-muted-foreground">Next step</p>
+            <p className="mb-1 text-[10px] uppercase text-muted-foreground font-semibold">Next step</p>
             <div className="flex flex-wrap gap-1">
               {NEXT_ACTIONS.map((a) => (
                 <Button key={a} size="sm" variant={a === nextAction ? "default" : "outline"} className="h-7 px-2 text-[11px]" onClick={() => setNextAction(a)}>{a}</Button>
@@ -92,11 +149,11 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
             </div>
           </div>
           <label className="text-xs">
-            <span className="text-muted-foreground">By when</span>
+            <span className="text-muted-foreground font-semibold">By when</span>
             <Input type="datetime-local" className="mt-1 h-8 w-[13rem]" value={due} onChange={(e) => setDue(e.target.value)} />
           </label>
-          <Button size="sm" variant="secondary" onClick={() => { setNext(lead.id, nextAction, new Date(due).toISOString()); toast.success("Next step and deadline locked"); }}>
-            Lock it
+          <Button size="sm" variant="secondary" className="active:scale-95 transition-all" onClick={() => { setNext(lead.id, nextAction, new Date(due).toISOString()); toast.success("Next step and deadline locked"); }}>
+            <CheckCircle className="mr-1 h-3.5 w-3.5 text-emerald-600" /> Lock it
           </Button>
           <Button size="sm" variant="outline" onClick={() => { escalate(lead.id, "Operator asked for help"); toast.success("Control Tower notified"); }}>
             Send to Control Tower
@@ -119,7 +176,7 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
       </Card>
 
       <Card className="p-4">
-        <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground font-semibold">
           The journey — click any step to see what is done, what is missing and what comes next
         </p>
         <StepRail lead={lead} selected={openKey} onSelect={(k) => { setSelected(k); panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }} allowLocked={expert} />
@@ -130,14 +187,14 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
       </div>
 
       <Card className="p-4">
-        <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">What has already happened ({lead.events.length})</p>
+        <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground font-semibold">What has already happened ({lead.events.length})</p>
         <ol className="space-y-1.5 text-xs">
           {[...lead.events].reverse().map((e, i) => (
             <li key={i} className="flex flex-wrap gap-1.5 border-b pb-1.5 last:border-0">
               <span className="text-muted-foreground">{mounted ? new Date(e.at).toLocaleString() : ""}</span>
               <span className="font-medium">{e.label}</span>
               {e.detail && <span className="text-muted-foreground">— {e.detail}</span>}
-              <span className="ml-auto text-muted-foreground">{e.actor}</span>
+              <span className="ml-auto text-muted-foreground font-mono text-[11px]">{e.actor}</span>
             </li>
           ))}
         </ol>
@@ -148,8 +205,8 @@ export function Workspace({ lead, onBack, onNext }: { lead: FlowLead; onBack: ()
 
 function Row({ label, value, bad }: { label: string; value: string; bad?: boolean }) {
   return (
-    <div className="flex gap-2">
-      <span className="w-24 text-muted-foreground">{label}</span>
+    <div className="flex gap-2 justify-between">
+      <span className="text-muted-foreground">{label}:</span>
       <span className={bad ? "font-medium text-destructive" : "font-medium"}>{value}</span>
     </div>
   );
